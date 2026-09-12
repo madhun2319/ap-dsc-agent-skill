@@ -73,9 +73,15 @@ D) A is false, but R is true.
 2. **Subagent Output Cleanliness:** Subagents must ONLY output their 20 questions. They MUST NOT output the Quarto YAML header (`---`) or the LaTeX `\begin{titlepage}` block. Only the final orchestrator Python script that merges the files should prepend the YAML and cover page. Otherwise, Quarto will crash with `Can be used only in preamble` errors due to duplicate headers.
 3. **LaTeX Math Artifacts:** Web scraping often leaves raw artifacts like `{\displaystyle \theta}` or `{\textstyle \frac{1}{2}}`. You MUST wrap these in standard math delimiters (e.g., `${\displaystyle \theta}$`) or the Quarto XeLaTeX engine will crash with a `Missing $ inserted` error.
 
-## The 100-Question Batching & Formatting Protocol
-When triggered, you MUST execute the generation using the subagent architecture to format the PDF, build the cover page, and bypass LLM token limits safely. Only the final merging script should output the following cover page block:
-   * FIRST, output this exact Quarto YAML header and LaTeX Cover Page at the very top of the file:
+## The Complete Book Generation Protocol
+When triggered, you MUST execute the generation using the subagent architecture to format the PDF, build the cover page, and generate comprehensive theory and questions.
+1. **Spawn Content Agents:** Before generating questions, spawn three specialized subagents:
+   - **Theory Expert:** Extracts all pure theory, laws, and equations into `output_theory.md`.
+   - **Memory Mapper:** Builds a comprehensive Mermaid.js mindmap of all formulas into `output_memorymap.md`.
+   - **Trap Hunter:** Identifies 10 critical exam traps formatted as Quarto callouts (`::: {.callout-warning}`) into `output_traps.md`.
+2. **Spawn Question Agents:** Spawn 5 parallel subagents to generate the 100 MCQs (as detailed in the constraints above) into `part1.md` through `part5.md`.
+3. **Merge and Format:** Only the final orchestrator script that merges these files should output the cover page block. It must merge them in this order: Cover Page -> Theory -> Memory Map -> Traps -> Questions.
+   * FIRST, output this exact Quarto YAML header and LaTeX Cover Page at the very top of the merged file:
 ```yaml
 ---
 format:
