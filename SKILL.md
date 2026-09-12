@@ -157,3 +157,15 @@ format:
     \hrule
 \end{center}
 \end{titlepage}
+```
+
+## System Architecture & Deployment Pipeline (CRITICAL INFRASTRUCTURE)
+If you ever need to troubleshoot or upgrade this system, remember this pipeline:
+1. **Trigger:** The user runs `Run_Generator.bat` locally. This script specifically prompts the `agy` CLI to execute the "Complete Book Generation Protocol".
+2. **Local Generation:** Antigravity (the AI) generates Theory, Maps, Traps, and Questions into the local `H:\html dsc\textbooks\` directory and merges them into a single `[Topic]_Grand_Test.qmd` file.
+3. **Version Control:** The `.bat` script pushes the raw `.qmd` files to the `AP-DSC-Physics-Prep` GitHub repository.
+4. **Cloud Compilation (GitHub Actions):** 
+   - A `.github/workflows/quarto-render.yml` action catches the push.
+   - **Fix 1 (Font Crash):** The Ubuntu runner does not have Windows fonts. The action runs `sed -i '/mainfont:/d' textbooks/*.qmd` to dynamically strip 'Cambria' from the Quarto YAML before rendering.
+   - **Fix 2 (Quarto Target Crash):** Quarto crashes if it tries to render intermediate `.md` files containing executable code. The action uses `LATEST_FILE=$(ls -t textbooks/*_Grand_Test.qmd | head -n 1)` to explicitly target and compile *only* the newest `.qmd` file.
+5. **Email Delivery:** Upon successful PDF compilation, GitHub Actions uses SMTP Secrets (`MAIL_USERNAME` and `MAIL_PASSWORD`) to email the PDF to the user's Gmail account.
